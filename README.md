@@ -48,7 +48,7 @@ Tidak perlu mengubah `local.properties` karena file tersebut tidak termasuk dala
 ## ▶Menjalankan Aplikasi
 
 1. Pilih **device/emulator** di bagian atas Android Studio
-2. Klik tombol **Run (▶)**
+2. Klik tombol **(▶)**
 3. Aplikasi akan otomatis build dan berjalan di perangkat yang dipilih
 
 ---
