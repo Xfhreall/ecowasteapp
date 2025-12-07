@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,14 +28,25 @@ import com.example.ecowasteapp.openTrashBinInMaps
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WasteDetailScreen(
-    wasteItem: WasteItem
+    wasteItem: WasteItem,
+    onBack: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(wasteItem.name) }
+                title = { Text(wasteItem.name) },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -101,7 +116,7 @@ fun WasteDetailScreen(
                 onClick = { openTrashBinInMaps(context) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Buka Maps – Tempat Sampah Terdekat")
+                Text("Buka Maps - Tempat Sampah Terdekat")
             }
         }
     }
