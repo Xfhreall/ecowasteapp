@@ -12,10 +12,12 @@ import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,27 +29,42 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.ecowasteapp.data.DummyWasteData
 import com.example.ecowasteapp.page.*
+import com.example.ecowasteapp.repository.AuthRepository
 import com.example.ecowasteapp.ui.theme.EcowasteappTheme
 
 class MainActivity : ComponentActivity() {
+    
+    private lateinit var authRepository: AuthRepository
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Inisialisasi AuthRepository dengan context
+        authRepository = AuthRepository(applicationContext)
+        
         setContent {
             EcowasteappTheme {
-                // STATE LOGIN (DUMMY)
-                // Default false = Belum Login.
-                var isLoggedIn by remember { mutableStateOf(false) }
+                // Check session saat startup - jika valid, set true
+                var isLoggedIn by remember { 
+                    mutableStateOf(authRepository.restoreSession()) 
+                }
 
                 if (isLoggedIn) {
                     // Jika SUDAH Login, tampilkan Menu Utama (MainScreen)
-                    MainScreen(onLogout = {
-                        isLoggedIn = false // Aksi Logout
-                    })
+                    MainScreen(
+                        onLogout = {
+                            authRepository.logout()
+                            isLoggedIn = false // Aksi Logout
+                        }
+                    )
                 } else {
                     // Jika BELUM Login, tampilkan Halaman Auth/Login
-                    AuthScreen(onLoginSuccess = {
-                        isLoggedIn = true // Aksi Login Berhasil
-                    })
+                    AuthScreen(
+                        authRepository = authRepository,
+                        onLoginSuccess = {
+                            isLoggedIn = true // Aksi Login Berhasil
+                        }
+                    )
                 }
             }
         }
@@ -58,20 +75,22 @@ class MainActivity : ComponentActivity() {
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector, val selectedIcon: ImageVector) {
     object Kenal : BottomNavItem("articles", "Kenal", Icons.Outlined.Article, Icons.Filled.Article)
     object Cari : BottomNavItem("search", "Cari", Icons.Outlined.CameraAlt, Icons.Filled.CameraAlt)
-    object Community : BottomNavItem("community", "Komunitas", Icons.Outlined.Groups, Icons.Filled.Groups) // Tab Baru
+    object Community : BottomNavItem("community", "Komunitas", Icons.Outlined.Groups, Icons.Filled.Groups)
     object Track : BottomNavItem("track", "Track", Icons.Outlined.LocationOn, Icons.Filled.LocationOn)
+    object Profile : BottomNavItem("profile", "Profil", Icons.Outlined.Person, Icons.Filled.Person)
 }
 
 @Composable
 fun MainScreen(onLogout: () -> Unit) {
     val navController = rememberNavController()
 
-    // MENAMBAHKAN TAB "KOMUNITAS" KE LIST
+    // MENAMBAHKAN TAB NAVIGASI
     val items = listOf(
         BottomNavItem.Kenal,
         BottomNavItem.Cari,
-        BottomNavItem.Community, // Tab baru ditambahkan di sini
-        BottomNavItem.Track
+        BottomNavItem.Community,
+        BottomNavItem.Track,
+        BottomNavItem.Profile
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -131,15 +150,33 @@ fun MainScreen(onLogout: () -> Unit) {
             composable(BottomNavItem.Cari.route) {
                 WasteListScreen(
                     wasteItems = DummyWasteData.wasteItems,
-                    onWasteClick = { id -> navController.navigate("detail/$id") }
+                    onWasteClick = { id -> navController.navigate("detail/$id") },
+                    onCameraClick = { navController.navigate("camera") }
                 )
             }
 
-            // 3. Route KOMUNITAS (BARU)
+            // 3. Route KOMUNITAS
             composable(BottomNavItem.Community.route) { CommunityScreen() }
 
             // 4. Route TRACK
             composable(BottomNavItem.Track.route) { WasteTrackScreen() }
+            
+            // 5. Route PROFILE
+            composable(BottomNavItem.Profile.route) { 
+                ProfileScreen(onLogout = onLogout)
+            }
+            
+            // Route CAMERA
+            composable("camera") {
+                CameraScreen(
+                    onBack = { navController.popBackStack() },
+                    onImageCaptured = { detectedType ->
+                        // Navigate back to search with detected type pre-filled
+                        navController.popBackStack()
+                        // You can pass the detected type as argument if needed
+                    }
+                )
+            }
     
             // Route DETAIL
             composable(
@@ -149,7 +186,10 @@ fun MainScreen(onLogout: () -> Unit) {
                 val wasteId = backStackEntry.arguments?.getString("wasteId")
                 val item = DummyWasteData.wasteItems.find { it.id == wasteId }
                 if (item != null) {
-                    WasteDetailScreen(wasteItem = item)
+                    WasteDetailScreen(
+                        wasteItem = item,
+                        onBack = { navController.popBackStack() }
+                    )
                 }
             }
         }
