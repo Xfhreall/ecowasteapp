@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "239723632604",
+    "project_id": "ecowasteapp-11756",
+    "storage_bucket": "ecowasteapp-11756.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:239723632604:android:80951974d93d4957d92119",
+        "android_client_info": {
+          "package_name": "com.example.ecowasteapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClueWHp8XEU1xLP2gDedMtC2qpk6U0M3g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
